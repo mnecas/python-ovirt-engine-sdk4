@@ -142,13 +142,6 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-      - name: Checkout target repository
-        uses: actions/checkout@v2
-        with:
-          path: ovirt-engine-sdk
-          ref: 'gh-pages'
-          token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Set FOLDER variable according to pushed branch
         run: |
           IFS="/" read _ type value <<<  ${GITHUB_REF}
@@ -165,18 +158,23 @@ jobs:
             echo "FOLDER=${value:0:3}" >> $GITHUB_ENV;
           fi
 
+      - name: Checkout target repository
+        uses: actions/checkout@v2
+        with:
+          ref: 'gh-pages'
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Move created documentation to gh-pages
         run: |
-          mkdir -p ./ovirt-engine-sdk/${{env.FOLDER}}/
-          cp ./html/ovirtsdk4.html ./ovirt-engine-sdk/${{env.FOLDER}}/index.html
-          cp ./html/ovirtsdk4/* ./ovirt-engine-sdk/${{env.FOLDER}}/
+          mkdir -p ./${{env.FOLDER}}/
+          cp ./html/ovirtsdk4.html ./${{env.FOLDER}}/index.html
+          cp ./html/ovirtsdk4/* ./${{env.FOLDER}}/
 
       - name: Push changes to gh-pages
         run: |
-          cd ovirt-engine-sdk
           commit=$(git log --format="%H" -n 1)
           description=$(git describe --always)
-          if git status --porcelain 2>/dev/null| grep -E "^??|^M"
+          if git status --porcelain 2>/dev/null | grep -E "^??|^M"
           then
             git add .
             git commit -m "gh-pages ${description} ${commit}"
